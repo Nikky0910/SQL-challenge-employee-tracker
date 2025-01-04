@@ -38,7 +38,9 @@ function mainMenu() {
         viewDepartments();
         } else if (response.menu === "view all employees") {
             viewEmployees();
-        }
+        } else if (response.menu === "view all roles") {
+            viewRoles();
+        } 
     });
 }
 
@@ -56,6 +58,17 @@ function viewEmployees() {
         LEFT JOIN role ON role.id = employee.role_id
         LEFT JOIN department ON department.id = role.department_id
         LEFT JOIN employee as employee_manager ON employee.manager_id= employee_manager.id ORDER BY employee.id;`, 
+        function (err, {rows}) {
+            printTable(rows)
+            mainMenu()
+        }
+    )
+}
+
+function viewRoles() {
+    pool.query(
+        `SELECT role.id, role.title, department.name as department, role.salary FROM role
+        JOIN department ON department.id = role.department_id;`, 
         function (err, {rows}) {
             printTable(rows)
             mainMenu()
