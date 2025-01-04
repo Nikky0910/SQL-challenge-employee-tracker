@@ -17,12 +17,6 @@ pool.connect(() => {
     mainMenu()
 });
 
-function viewDepartments() {
-    pool.query('SELECT * FROM department', function (err, {rows}) {
-        printTable(rows)
-        mainMenu()
-    })
-}
 function mainMenu() {
     inquirer.prompt([
         {
@@ -42,8 +36,29 @@ function mainMenu() {
     ]).then((response) => {
         if (response.menu === "view all departments") {
         viewDepartments();
+        } else if (response.menu === "view all employees") {
+            viewEmployees();
         }
     });
 }
 
+function viewDepartments() {
+    pool.query('SELECT * FROM department', function (err, {rows}) {
+        printTable(rows)
+        mainMenu()
+    })
+}
 
+function viewEmployees() {
+    pool.query(
+        `SELECT employee.id, employee.first_name, employee.last_name, role.title as title, department.name as department, role.salary, CONCAT (employee_manager.first_name,'', employee_manager.last_name) as manager
+        FROM employee
+        LEFT JOIN role ON role.id = employee.role_id
+        LEFT JOIN department ON department.id = role.department_id
+        LEFT JOIN employee as employee_manager ON employee.manager_id= employee_manager.id ORDER BY employee.id;`, 
+        function (err, {rows}) {
+            printTable(rows)
+            mainMenu()
+        }
+    )
+}
