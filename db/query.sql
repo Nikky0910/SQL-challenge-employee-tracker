@@ -10,4 +10,4 @@ SELECT employee.id, employee.first_name, employee.last_name, role.title as title
 FROM employee
 LEFT JOIN role ON role.id = employee.role_id
 LEFT JOIN department ON department.id = role.department_id
-LEFT JOIN employee as employee_manager ON employee.manager_id= employee_manager.id order by employee.id;
+LEFT JOIN employee as employee_manager ON employee.manager_id= employee_manager.id ORDER BY employee.id;
