@@ -40,6 +40,8 @@ function mainMenu() {
             viewEmployees();
         } else if (response.menu === "view all roles") {
             viewRoles();
+        } else if(response.menu === "add an employee") {
+            addEmployee()
         } 
     });
 }
@@ -75,3 +77,45 @@ function viewRoles() {
         }
     )
 }
+
+function addEmployee() {
+    pool.query("SELECT title as name, id as value FROM role", 
+        function (err, {rows}) {
+            pool.query("SELECT CONCAT(first_name,'',last_name) AS name, id AS value FROM employee", (err, {rows: managerRows})=>{
+                inquirer.prompt([
+                    {
+                        type: "input",
+                        message: "What is the employee's first name?",
+                        name: "first_name",
+                    },
+                    {
+                        type: "input",
+                        message: "What is the employee's last name?",
+                        name: "last_name",
+                    },
+                    {
+                        type: "list",
+                        message: "What is the employee's role?",
+                        name: "role",
+                        choices: rows
+                    },
+                    {
+                        type: "list",
+                        message: "What is the employee's manager?",
+                        name: "manager",
+                        choices: managerRows
+                    },
+            
+                ]).then((response) => {
+                    pool.query(
+                        `INSERT INTO employee(first_name, last_name, role_id, manager_id)
+                        VALUES ('${response.first_name}', '${response.last_name}', ${response.role},${response.manager})`, (err)=> {
+                            console.log("New Employee has been added into the system!")
+                            viewEmployees()
+                        })
+                });
+            })
+        }
+    )
+}
+
