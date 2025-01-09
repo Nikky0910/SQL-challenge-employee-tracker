@@ -42,12 +42,14 @@ function mainMenu() {
             viewRoles();
         } else if(response.menu === "add an employee") {
             addEmployee()
-        } 
+        } else if (response.menu === "update an employee role") {
+            updateEmployeeRole()
+        }
     });
 }
 
 function viewDepartments() {
-    pool.query('SELECT * FROM department', function (err, {rows}) {
+    pool.query('SELECT * FROM department', (err, {rows}) => {
         printTable(rows)
         mainMenu()
     })
@@ -60,7 +62,7 @@ function viewEmployees() {
         LEFT JOIN role ON role.id = employee.role_id
         LEFT JOIN department ON department.id = role.department_id
         LEFT JOIN employee as employee_manager ON employee.manager_id= employee_manager.id ORDER BY employee.id;`, 
-        function (err, {rows}) {
+        (err, {rows}) => {
             printTable(rows)
             mainMenu()
         }
@@ -71,7 +73,7 @@ function viewRoles() {
     pool.query(
         `SELECT role.id, role.title, department.name as department, role.salary FROM role
         JOIN department ON department.id = role.department_id;`, 
-        function (err, {rows}) {
+        (err, {rows})=> {
             printTable(rows)
             mainMenu()
         }
@@ -80,8 +82,8 @@ function viewRoles() {
 
 function addEmployee() {
     pool.query("SELECT title as name, id as value FROM role", 
-        function (err, {rows}) {
-            pool.query("SELECT CONCAT(first_name,'',last_name) AS name, id AS value FROM employee", (err, {rows: managerRows})=>{
+        (err, {rows}) => {
+            pool.query(`SELECT CONCAT(first_name,'',last_name) AS name, id AS value FROM employee`, (err, {rows: managerRows})=>{
                 inquirer.prompt([
                     {
                         type: "input",
@@ -104,18 +106,41 @@ function addEmployee() {
                         message: "What is the employee's manager?",
                         name: "manager",
                         choices: managerRows
-                    },
-            
-                ]).then((response) => {
-                    pool.query(
-                        `INSERT INTO employee(first_name, last_name, role_id, manager_id)
-                        VALUES ('${response.first_name}', '${response.last_name}', ${response.role},${response.manager})`, (err)=> {
-                            console.log("New Employee has been added into the system!")
-                            viewEmployees()
-                        })
+                    }]).then((response) => {
+                        pool.query(
+                            `INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(${response.first_name}, ${response.last_name}, ${response.role},${response.manager})`, (err)=> {
+                                console.log("New Employee has been added into the system!")
+                                viewEmployees()
+                            })
                 });
             })
         }
     )
 }
 
+function updateEmployeeRole() {
+    pool.query("SELECT CONCAT(first_name,'  ',last_name) AS name, id AS value FROM employee", (err, {rows}) => {
+        pool.query("SELECT title as name, id as value FROM role", (err, {rows : roleRows}) => {
+            inquirer.prompt([
+                {
+                    type: "list",
+                    message: "Which employee's role do you want to update?",
+                    name: "employee",
+                    choices: rows
+                },
+                {
+                    type: "list",
+                    message: "Which role do you want to assign the selected employee?",
+                    name: "role",
+                    choices: roleRows
+                }
+            ])
+            .then (response=> {
+                pool.query (`UPDATE employee SET role_id = ${response.role} where id = ${response.employee}`, (err) => {
+                    console.log("Employee's role has been updated")
+                    viewEmployees()
+                    });
+            })
+        })
+    })
+}
