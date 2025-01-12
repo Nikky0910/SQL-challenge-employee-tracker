@@ -46,6 +46,8 @@ function mainMenu() {
             updateEmployeeRole()
         } else if (response.menu === "add a role") {
             addRole()
+        } else if(response.menu === "add a department") {
+            addDepartment()
         }
     });
 }
@@ -162,6 +164,63 @@ function addEmployee() {
     )
 }
 
+function addRole() {
+    pool.query("SELECT name as name, id as value FROM department", (err, {rows}) => {
+            if(err) {
+                console.error("Error fetching departments", err.message);
+                mainMenu();
+                return;
+            }
+            inquirer.prompt([
+                {
+                    type: "input",
+                    message: "What is the name of the role?",
+                    name: "title",
+                },
+                {
+                    type: "input",
+                    message: "What is the salary of the role?",
+                    name: "salary",
+                },
+                {
+                    type: "list",
+                    message: "Which department does the role belong to?",
+                    name: "department",
+                    choices: rows
+                }
+            ]).then((response) => {
+                pool.query(
+                    `INSERT INTO role(title, salary, department_id) VALUES($1, $2, $3)`, [response.title, response.salary, response.department], (err)=> {
+                        if (err) {
+                            console.error("Error adding role:", err.message)
+                        } else {
+                            console.log("A new role has been added into the system!")
+                        }
+                        viewRoles();
+                    }
+                )});
+    })
+}
+
+function addDepartment() {
+    inquirer.prompt([
+    {
+        type: "input",
+        message: "What is the name of the department?",
+        name: "department",
+    }]).then((response) => {
+    pool.query(
+        `INSERT INTO department(name) VALUES($1)`, [response.department], (err)=> {
+            if (err) {
+                console.error("Error adding department:", err.message)
+            } else {
+                console.log("A new department has been added into the system!")
+            }
+            viewDepartments();
+        }
+    )});
+}
+
 function updateEmployeeRole() {
     pool.query("SELECT CONCAT(first_name,'  ',last_name) AS name, id AS value FROM employee", (err, {rows: employeeRows}) => {
         if (err) {
@@ -200,43 +259,5 @@ function updateEmployeeRole() {
                 });
             })
         })
-    })
-}
-
-function addRole() {
-    pool.query("SELECT name as name, id as value FROM department", (err, {rows}) => {
-            if(err) {
-                console.error("Error fetching departments", err.message);
-                mainMenu();
-                return;
-            }
-            inquirer.prompt([
-                {
-                    type: "input",
-                    message: "What is the name of the role?",
-                    name: "title",
-                },
-                {
-                    type: "input",
-                    message: "What is the salary of the role?",
-                    name: "salary",
-                },
-                {
-                    type: "list",
-                    message: "Which department does the role belong to?",
-                    name: "department",
-                    choices: rows
-                }
-            ]).then((response) => {
-                pool.query(
-                    `INSERT INTO role(title, salary, department_id) VALUES($1, $2, $3)`, [response.title, response.salary, response.department], (err)=> {
-                        if (err) {
-                            console.error("Error adding role:", err.message)
-                        } else {
-                            console.log("A new role has been added into the system!")
-                        }
-                        viewRoles();
-                    }
-                )});
     })
 }
