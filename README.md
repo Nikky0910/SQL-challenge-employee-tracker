@@ -62,7 +62,7 @@ This will install the following dependencies:
 
 Please refer to the following video on how to use the application: 
 
-<a href = "#"> Click here to watch the video</a>
+<a href = "https://drive.google.com/file/d/1aq8CmcbiOeNK6lcT2aCkpMQa5B1z0xKu/view?usp=sharing"> Click here to watch the video</a>
 
 
 ## License
